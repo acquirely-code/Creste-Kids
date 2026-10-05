@@ -354,7 +354,8 @@ _wq.push({ id: "9nnwywqzeh", onReady: function (video) {
 }});
 /* ===== EDIT THESE ===== */
 const CONFIG = {
-  whatsappNumber: "91XXXXXXXXXX",          // country code + number, digits only
+  whatsappNumber: "918081026320",          // country code + number, digits only
+  waGreeting:     "Hi Creste! I would like a Diwali bulk quote.", // first line of the WhatsApp message
   enquiryEmail:   "hello@yourdomain.com",  // used if no form endpoint is set
   formEndpoint:   "",                      // e.g. https://formspree.io/f/abcdwxyz  (leave "" to use email)
   deadline:       "2026-11-01"             // last day to order (YYYY-MM-DD, IST)
@@ -374,7 +375,7 @@ const CONFIG = {
   const labels = {name:"Name",company:"Company",email:"Email",phone:"Phone/WhatsApp",qty:"Kits",kit:"Kit type",budget:"Budget",city:"Delivery city",date:"Needed by",brand:"Branding",msg:"Message"};
   const data = () => { const d = {}; fields.forEach((k) => (d[labels[k]] = val("f-" + k) || "-")); return d; };
   const lines = () => Object.entries(data()).map(([k, v]) => k + ": " + v).join("\n");
-  const waHref = () => "https://wa.me/" + CONFIG.whatsappNumber.replace(/\D/g, "") + "?text=" + encodeURIComponent("Hi Creste! I would like a Diwali bulk quote.\n" + lines());
+  const waHref = () => "https://wa.me/" + CONFIG.whatsappNumber.replace(/\D/g, "") + "?text=" + encodeURIComponent(CONFIG.waGreeting + "\n\n" + Object.entries(data()).filter(([, v]) => v !== "-").map(([k, v]) => k + ": " + v).join("\n"));
   document.querySelectorAll(".js-wa").forEach((a) => {
     a.target = "_blank"; a.rel = "noopener";
     a.addEventListener("click", () => { a.href = waHref(); });
