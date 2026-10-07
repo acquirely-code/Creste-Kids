@@ -277,10 +277,9 @@ input:focus,select:focus,textarea:focus{outline:3px solid #3AACCC;outline-offset
 <div style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 6px"><label for="f-msg" style="font-family: Quicksand, sans-serif; font-weight: 700; font-size: 13px; color: #3B2A1E">Message</label><textarea id="f-msg" name="msg" rows="3" style="font-family: Poppins, sans-serif; font-size: 15px; padding: 11px 13px; border: 1.5px solid #D9C9B2; border-radius: 12px; background: #FFFCF7; color: #3B2A1E; resize: vertical; box-sizing: border-box"></textarea></div>
 <div style="grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 14px 20px">
 <a class="btn" href="#enquire" id="quote-btn" role="button" style="background: #F4793A; color: #fff; text-decoration: none; font-family: Quicksand, sans-serif; font-weight: 700; font-size: 17px; padding: 15px 30px; border-radius: 999px; min-height: 52px; box-sizing: border-box; display: inline-flex; align-items: center">Get my bulk quote</a>
-<a href="#" class="js-wa" target="_blank" rel="noopener" style="font-family: Quicksand, sans-serif; font-weight: 700; font-size: 14px; color: #2E7A45">or WhatsApp us instead</a>
 </div>
 <p id="form-error" hidden style="grid-column: 1 / -1; margin: 0; font-size: 14px; font-weight: 600; color: #B3261E">Please add your name, work email, phone, delivery city and at least 50 kits.</p>
-<p id="form-sent" hidden style="grid-column: 1 / -1; margin: 0; font-size: 14px; font-weight: 600; color: #2E6B40">Your email is ready with all the details. Hit send and we’ll reply within one working day.</p>
+<p id="form-sent" hidden style="grid-column: 1 / -1; margin: 0; font-size: 14px; font-weight: 600; color: #2E6B40">WhatsApp is opening with your details. Hit send and we’ll reply within one working day.</p>
 </div>
 </div>
 </section>
@@ -329,8 +328,6 @@ _wq.push({ id: "9nnwywqzeh", onReady: function (video) {
 const CONFIG = {
   whatsappNumber: "918081026320",          // country code + number, digits only
   waGreeting:     "Hi Creste! I would like a Diwali bulk quote.", // first line of the WhatsApp message
-  enquiryEmail:   "hello@yourdomain.com",  // used if no form endpoint is set
-  formEndpoint:   "",                      // e.g. https://formspree.io/f/abcdwxyz  (leave "" to use email)
   deadline:       "2026-11-01"             // last day to order (YYYY-MM-DD, IST)
 };
 /* ====================== */
@@ -347,7 +344,6 @@ const CONFIG = {
   const fields = ["name","company","email","phone","qty","kit","budget","city","date","brand","msg"];
   const labels = {name:"Name",company:"Company",email:"Email",phone:"Phone/WhatsApp",qty:"Kits",kit:"Kit type",budget:"Budget",city:"Delivery city",date:"Needed by",brand:"Branding",msg:"Message"};
   const data = () => { const d = {}; fields.forEach((k) => (d[labels[k]] = val("f-" + k) || "-")); return d; };
-  const lines = () => Object.entries(data()).map(([k, v]) => k + ": " + v).join("\n");
   const waHref = () => "https://wa.me/" + CONFIG.whatsappNumber.replace(/\D/g, "") + "?text=" + encodeURIComponent(CONFIG.waGreeting + "\n\n" + Object.entries(data()).filter(([, v]) => v !== "-").map(([k, v]) => k + ": " + v).join("\n"));
   document.querySelectorAll(".js-wa").forEach((a) => {
     a.target = "_blank"; a.rel = "noopener";
@@ -359,30 +355,16 @@ const CONFIG = {
   if (qty) { qty.value = qty.value || "50"; qty.addEventListener("input", () => { const n = parseInt(qty.value, 10); $("qty-warn").hidden = !(n < 50); }); }
   // Submit
   const btn = $("quote-btn");
-  if (btn) btn.addEventListener("click", async (e) => {
+  if (btn) btn.addEventListener("click", (e) => {
     e.preventDefault();
     const n = parseInt(val("f-qty"), 10);
     const ok = val("f-name") && /\S+@\S+\.\S+/.test(val("f-email")) && val("f-phone") && val("f-city") && n >= 50;
     $("form-error").hidden = !!ok; $("form-sent").hidden = true;
     if (!ok) return;
-    const subject = "Diwali bulk quote request" + (val("f-company") ? " — " + val("f-company") : "");
-    if (CONFIG.formEndpoint) {
-      btn.textContent = "Sending…";
-      try {
-        const r = await fetch(CONFIG.formEndpoint, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify(Object.assign({ _subject: subject }, data())) });
-        if (!r.ok) throw new Error();
-        $("form-sent").textContent = "Thanks! Your quote request is in. We’ll reply within one working day.";
-        $("form-sent").hidden = false;
-        btn.textContent = "Request sent";
-      } catch (err) {
-        btn.textContent = "Get my bulk quote";
-        $("form-error").textContent = "Couldn’t send just now. Please WhatsApp us instead.";
-        $("form-error").hidden = false;
-      }
-    } else {
-      window.location.href = "mailto:" + CONFIG.enquiryEmail + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(lines());
-      $("form-sent").hidden = false;
-    }
+    // Open WhatsApp with the form details; fall back to same-tab if a popup is blocked
+    const w = window.open(waHref(), "_blank");
+    if (w) w.opener = null; else window.location.href = waHref();
+    $("form-sent").hidden = false;
   });
 })();
 </script>
